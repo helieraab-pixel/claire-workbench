@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>福尔摩斯 · Claire 的个人工作台</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --purple-900: #1a0a2e;
+  --purple-800: #2d0b4e;
+  --purple-700: #4a0e7a;
+  --purple-600: #6b21a8;
+  --purple-500: #8b3fcf;
+  --purple-400: #a855f7;
+  --purple-300: #c084fc;
+  --purple-200: #d8b4fe;
+  --purple-100: #f3e8ff;
+  --accent-pink: #ec4899;
+  --accent-gold: #f59e0b;
+  --accent-cyan: #06b6d4;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --bg-main: #0f0520;
+  --bg-card: rgba(75, 20, 120, 0.35);
+  --bg-card-hover: rgba(100, 30, 160, 0.5);
+  --bg-sidebar: rgba(20, 8, 40, 0.95);
+  --text-primary: #f5f0ff;
+  --text-secondary: #c4b5e8;
+  --text-muted: #8b7aaa;
+  --border-color: rgba(168, 85, 247, 0.3);
+  --shadow-glow: 0 0 20px rgba(168, 85, 247, 0.3);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 64px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(139, 63, 207, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--purple-600); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--purple-400); }
+
+/* ===== Sidebar ===== */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border-color);
+  z-index: 100;
+  transition: width var(--transition), transform var(--transition);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .user-name,
+.sidebar.collapsed .user-subtitle,
+.sidebar.collapsed .badge-count { display: none; }
+.sidebar.collapsed .nav-icon { margin: 0 auto; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 14px 0; }
+.sidebar.collapsed .sidebar-toggle { transform: rotate(180deg); }
+
+.sidebar-header {
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.sidebar-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--purple-500), var(--accent-pink));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.sidebar-title {
+  font-size: 16px; font-weight: 700;
+  background: linear-gradient(135deg, var(--purple-300), var(--accent-pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+}
+
+.sidebar-toggle {
+  position: absolute; right: -14px; top: 50%;
+  transform: translateY(-50%);
+  width: 28px; height: 28px;
+  background: var(--purple-600);
+  border: 2px solid var(--purple-400);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: var(--transition);
+  z-index: 101;
+}
+.sidebar-toggle:hover {
+  background: var(--purple-500);
+  box-shadow: var(--shadow-glow);
+}
+
+.sidebar-user {
+  padding: 16px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+.avatar-wrap {
+  position: relative; flex-shrink: 0; cursor: pointer;
+}
+.avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--purple-400);
+  transition: var(--transition);
+}
+.avatar:hover { border-color: var(--accent-pink); box-shadow: 0 0 12px rgba(236, 72, 153, 0.4); }
+.avatar-placeholder {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple-600), var(--accent-pink));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700;
+  border: 2px solid var(--purple-400);
+}
+.avatar-badge {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 16px; height: 16px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  border: 2px solid var(--bg-sidebar);
+}
+.user-info { overflow: hidden; }
+.user-name { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.user-subtitle { font-size: 11px; color: var(--text-muted); }
+
+.sidebar-nav {
+  flex: 1; overflow-y: auto; padding: 8px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.nav-section-title {
+  font-size: 10px; text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 12px 6px;
+  letter-spacing: 1px;
+  white-space: nowrap; overflow: hidden;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  position: relative;
+}
+.nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(139, 63, 207, 0.5), rgba(236, 72, 153, 0.3));
+  color: var(--text-primary);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
+  width: 3px; background: var(--purple-400); border-radius: 0 3px 3px 0;
+}
+.nav-icon { font-size: 20px; flex-shrink: 0; width: 24px; text-align: center; }
+.nav-label { font-size: 13px; }
+.badge-count {
+  margin-left: auto;
+  background: var(--accent-pink);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* ===== Main Area ===== */
+.main-area {
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition);
+  min-height: 100vh;
+  position: relative;
+}
+.main-area.expanded { margin-left: var(--sidebar-collapsed); }
+
+/* ===== Top Bar ===== */
+.top-bar {
+  padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(15, 5, 32, 0.8);
+  backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 50;
+}
+.top-bar-left { display: flex; align-items: center; gap: 12px; }
+.greeting {
+  font-size: 18px; font-weight: 700;
+  background: linear-gradient(135deg, var(--purple-300), var(--accent-cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.conan-badge {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent-gold), #fbbf24);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+}
+
+.top-bar-right { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-secondary); }
+.top-bar-right span { color: var(--purple-300); font-weight: 600; }
+
+/* ===== Panels Container ===== */
+.panels-container {
+  padding: 20px 24px;
+  max-width: 1400px;
+}
+.panel { display: none; }
+.panel.active { display: block; animation: fadeSlideIn 0.4s ease; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Cards ===== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.card:hover { border-color: var(--purple-400); box-shadow: var(--shadow-glow); }
+.card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+}
+.card-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.card-icon.purple { background: linear-gradient(135deg, var(--purple-700), var(--purple-500)); }
+.card-icon.pink { background: linear-gradient(135deg, var(--purple-600), var(--accent-pink)); }
+.card-icon.gold { background: linear-gradient(135deg, #92400e, var(--accent-gold)); }
+.card-icon.cyan { background: linear-gradient(135deg, #155e75, var(--accent-cyan)); }
+.card-icon.green { background: linear-gradient(135deg, #166534, var(--accent-green)); }
+.card-title { font-size: 16px; font-weight: 700; }
+.card-subtitle { font-size: 12px; color: var(--text-muted); }
+
+/* ===== Grid ===== */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+/* ===== Welcome Panel ===== */
+.welcome-section {
+  text-align: center; padding: 40px 20px;
+}
+.welcome-anime {
+  font-size: 80px; margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.welcome-title {
+  font-size: 28px; font-weight: 800;
+  margin-bottom: 8px;
+}
+.welcome-sub {
+  font-size: 14px; color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.quick-stats {
+  display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px 24px;
+  text-align: center;
+  min-width: 120px;
+}
+.stat-value {
+  font-size: 28px; font-weight: 800;
+  background: linear-gradient(135deg, var(--purple-300), var(--accent-pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ===== Progress Bar ===== */
+.progress-wrap { margin: 12px 0; }
+.progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+.progress-bar {
+  height: 8px; background: rgba(255,255,255,0.1);
+  border-radius: 4px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.progress-fill.purple { background: linear-gradient(90deg, var(--purple-600), var(--purple-400)); }
+.progress-fill.pink { background: linear-gradient(90deg, var(--purple-600), var(--accent-pink)); }
+.progress-fill.cyan { background: linear-gradient(90deg, #155e75, var(--accent-cyan)); }
+.progress-fill.green { background: linear-gradient(90deg, #166534, var(--accent-green)); }
+.progress-fill.gold { background: linear-gradient(90deg, #92400e, var(--accent-gold)); }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  color: #fff;
+  font-family: inherit;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple-600), var(--purple-500));
+  box-shadow: 0 2px 12px rgba(139, 63, 207, 0.4);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(139, 63, 207, 0.6); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--purple-500);
+  color: var(--purple-300);
+}
+.btn-outline:hover { background: var(--purple-700); }
+.btn-success { background: var(--accent-green); }
+.btn-danger { background: var(--accent-red); }
+.btn-gold { background: linear-gradient(135deg, #b45309, var(--accent-gold)); }
+
+/* ===== Timer ===== */
+.timer-display {
+  font-size: 48px; font-weight: 800; text-align: center;
+  font-variant-numeric: tabular-nums;
+  margin: 16px 0;
+  background: linear-gradient(135deg, var(--purple-300), var(--accent-cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.timer-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* ===== Tree Panel ===== */
+.tree-container {
+  text-align: center; padding: 24px;
+}
+.tree-emoji {
+  font-size: 100px;
+  animation: treeSway 4s ease-in-out infinite;
+  display: inline-block;
+  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
+}
+@keyframes treeSway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.tree-status {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px; font-weight: 600;
+  margin: 12px 0;
+}
+.tree-status.healthy { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid rgba(34, 197, 94, 0.3); }
+.tree-status.water-warn { background: rgba(245, 158, 11, 0.2); color: var(--accent-gold); border: 1px solid rgba(245, 158, 11, 0.3); animation: blink 1s infinite; }
+.tree-status.nutrient-warn { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); animation: blink 1s infinite; }
+.tree-status.double-warn { background: rgba(239, 68, 68, 0.25); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.4); animation: blink 0.6s infinite; }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.tree-level { font-size: 14px; color: var(--text-secondary); margin: 8px 0; }
+.water-cups { display: flex; gap: 12px; justify-content: center; margin: 16px 0; }
+.water-cup {
+  width: 56px; height: 64px;
+  border: 2px solid var(--accent-cyan);
+  border-radius: 8px 8px 16px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex; align-items: flex-end; justify-content: center;
+  position: relative; overflow: hidden;
+  font-size: 14px;
+}
+.water-cup.filled {
+  background: linear-gradient(0deg, rgba(6, 182, 212, 0.6) 80%, rgba(6, 182, 212, 0.3) 100%);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+}
+.water-cup:hover { transform: scale(1.05); }
+
+/* ===== Calendar ===== */
+.calendar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.calendar-month {
+  font-size: 18px; font-weight: 700;
+  color: var(--purple-300);
+}
+.calendar-nav { display: flex; gap: 6px; }
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+.calendar-day-header {
+  font-size: 11px; color: var(--text-muted);
+  padding: 8px 0;
+  font-weight: 600;
+}
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.calendar-day:hover { background: var(--bg-card); }
+.calendar-day.today {
+  background: linear-gradient(135deg, var(--purple-600), var(--purple-500));
+  font-weight: 700;
+}
+.calendar-day.event {
+  border: 1px solid var(--accent-gold);
+}
+.calendar-day .dot {
+  width: 4px; height: 4px;
+  background: var(--accent-gold);
+  border-radius: 50%;
+  margin-top: 2px;
+}
+.calendar-day.other-month { color: var(--text-muted); opacity: 0.4; }
+
+/* ===== Todo List ===== */
+.todo-list { display: flex; flex-direction: column; gap: 8px; }
+.todo-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+.todo-item:hover { background: rgba(255,255,255,0.06); }
+.todo-item.done .todo-text { text-decoration: line-through; color: var(--text-muted); }
+.todo-check {
+  width: 20px; height: 20px;
+  border: 2px solid var(--purple-500);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.todo-item.done .todo-check {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+.todo-check::after {
+  content: '✓'; font-size: 12px; color: #fff;
+  opacity: 0; transition: var(--transition);
+}
+.todo-item.done .todo-check::after { opacity: 1; }
+.todo-text { flex: 1; font-size: 13px; }
+.todo-time { font-size: 11px; color: var(--text-muted); }
+.todo-delete {
+  color: var(--text-muted); cursor: pointer;
+  font-size: 16px; opacity: 0; transition: var(--transition);
+}
+.todo-item:hover .todo-delete { opacity: 1; }
+.todo-delete:hover { color: var(--accent-red); }
+.todo-input-wrap { display: flex; gap: 8px; margin-top: 12px; }
+.todo-input {
+  flex: 1; padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 13px; font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+.todo-input:focus { border-color: var(--purple-400); box-shadow: 0 0 8px rgba(168, 85, 247, 0.2); }
+.todo-input::placeholder { color: var(--text-muted); }
+
+/* ===== Finance ===== */
+.finance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.account-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  text-align: center;
+  transition: var(--transition);
+}
+.account-card:hover { border-color: var(--purple-400); }
+.account-name { font-size: 13px; color: var(--text-secondary); }
+.account-balance {
+  font-size: 20px; font-weight: 700;
+  color: var(--purple-300); margin: 8px 0;
+}
+.account-change { font-size: 11px; }
+.account-change.pos { color: var(--accent-red); }
+.account-change.neg { color: var(--accent-green); }
+
+.transaction-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+.form-input {
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 13px; font-family: inherit;
+  outline: none;
+  min-width: 80px;
+}
+.form-input:focus { border-color: var(--purple-400); }
+.form-select {
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 13px; font-family: inherit;
+  outline: none; cursor: pointer;
+}
+.form-select option { background: var(--purple-900); color: var(--text-primary); }
+.form-select:focus { border-color: var(--purple-400); }
+
+.transaction-list { margin-top: 16px; max-height: 200px; overflow-y: auto; }
+.tx-item {
+  display: flex; justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 12px;
+}
+.tx-income { color: var(--accent-red); }
+.tx-expense { color: var(--accent-green); }
+
+/* ===== Art Inspiration ===== */
+.art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.art-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.art-card:hover { transform: translateY(-2px); border-color: var(--purple-400); }
+.art-img {
+  width: 100%; height: 140px;
+  background: linear-gradient(135deg, var(--purple-800), var(--purple-600));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+}
+.art-info { padding: 12px; }
+.art-title { font-size: 13px; font-weight: 600; }
+.art-source { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ===== AI Chat ===== */
+.ai-chat-btn {
+  position: fixed; bottom: 24px; right: 24px;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple-600), var(--accent-pink));
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #fff;
+  box-shadow: 0 4px 24px rgba(168, 85, 247, 0.5);
+  z-index: 200;
+  transition: var(--transition);
+  display: flex; align-items: center; justify-content: center;
+}
+.ai-chat-btn:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(168, 85, 247, 0.7); }
+
+.ai-chat-panel {
+  position: fixed; bottom: 96px; right: 24px;
+  width: 380px; max-width: calc(100vw - 48px); height: 520px; max-height: calc(100vh - 140px);
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  z-index: 199;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ai-chat-panel.open { display: flex; animation: chatSlideUp 0.3s ease; }
+@keyframes chatSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.chat-header {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--purple-700), var(--purple-600));
+  display: flex; align-items: center; gap: 10px;
+}
+.chat-header-icon { font-size: 24px; }
+.chat-header-info { flex: 1; }
+.chat-header-name { font-size: 14px; font-weight: 700; }
+.chat-header-status { font-size: 11px; color: rgba(255,255,255,0.7); }
+.chat-close {
+  background: none; border: none;
+  color: rgba(255,255,255,0.7); font-size: 20px;
+  cursor: pointer; padding: 4px;
+}
+.chat-close:hover { color: #fff; }
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.chat-msg {
+  max-width: 85%; padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 13px; line-height: 1.5;
+}
+.chat-msg.bot {
+  align-self: flex-start;
+  background: rgba(139, 63, 207, 0.3);
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--purple-600), var(--accent-pink));
+  border-bottom-right-radius: 4px;
+}
+.chat-input-wrap {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex; gap: 8px;
+}
+.chat-input {
+  flex: 1; padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 13px; font-family: inherit;
+  outline: none;
+}
+.chat-input:focus { border-color: var(--purple-400); }
+.chat-input::placeholder { color: var(--text-muted); }
+.chat-send {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple-500), var(--accent-pink));
+  border: none; cursor: pointer;
+  font-size: 18px; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.chat-send:hover { transform: scale(1.05); }
+
+/* ===== Decorative Elements ===== */
+.footprint-decor {
+  position: absolute;
+  font-size: 14px;
+  opacity: 0.15;
+  pointer-events: none;
+}
+.bowtie-decor {
+  position: absolute;
+  font-size: 18px;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar.collapsed { width: var(--sidebar-width); }
+  .sidebar.collapsed .nav-label,
+  .sidebar.collapsed .user-name,
+  .sidebar.collapsed .user-subtitle { display: block; }
+  .sidebar.collapsed .nav-item { justify-content: flex-start; padding: 12px 14px; }
+  .sidebar.collapsed .nav-icon { margin: 0; }
+  .sidebar-toggle { display: none; }
+
+  .main-area { margin-left: 0 !important; }
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 99;
+  }
+  .mobile-overlay.show { display: block; }
+
+  .mobile-menu-btn {
+    display: flex !important;
+    width: 36px; height: 36px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px;
+    color: var(--text-primary);
+  }
+
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .finance-grid { grid-template-columns: repeat(2, 1fr); }
+  .ai-chat-panel { width: calc(100vw - 32px); bottom: 80px; right: 16px; }
+  .quick-stats { gap: 10px; }
+  .stat-card { min-width: 80px; padding: 12px 16px; }
+  .panels-container { padding: 12px; }
+  .top-bar { padding: 12px 16px; }
+  .transaction-form { flex-direction: column; align-items: stretch; }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-btn { display: none !important; }
+  .mobile-overlay { display: none !important; }
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; top: 24px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--purple-600);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-size: 13px;
+  z-index: 300;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+  box-shadow: 0 4px 20px rgba(139, 63, 207, 0.5);
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<!-- Mobile Overlay -->
+<div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-toggle" onclick="toggleSidebarDesktop()" title="收起/展开菜单">◀</div>
+
+  <div class="sidebar-header">
+    <div class="sidebar-logo">🔍</div>
+    <span class="sidebar-title">福尔摩斯</span>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="avatar-wrap" onclick="document.getElementById('avatarInput').click()">
+      <img class="avatar" id="avatarImg" src="" alt="头像" style="display:none">
+      <div class="avatar-placeholder" id="avatarPlaceholder">C</div>
+      <div class="avatar-badge"></div>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+    </div>
+    <div class="user-info">
+      <div class="user-name">Claire</div>
+      <div class="user-subtitle">今日也是侦探的一天</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">📋 工作模块</div>
+    <div class="nav-item active" data-panel="welcome">
+      <span class="nav-icon">🏠</span><span class="nav-label">工作台首页</span>
+    </div>
+    <div class="nav-item" data-panel="academic">
+      <span class="nav-icon">🎓</span><span class="nav-label">学术科研</span>
+    </div>
+    <div class="nav-item" data-panel="reading">
+      <span class="nav-icon">📖</span><span class="nav-label">每日阅读</span>
+      <span class="badge-count" id="readingBadge">0天</span>
+    </div>
+    <div class="nav-item" data-panel="english">
+      <span class="nav-icon">🔤</span><span class="nav-label">英语进阶</span>
+    </div>
+    <div class="nav-item" data-panel="sports">
+      <span class="nav-icon">🏊‍</span><span class="nav-label">运动健身</span>
+    </div>
+    <div class="nav-item" data-panel="art">
+      <span class="nav-icon">🎨</span><span class="nav-label">画画灵感</span>
+    </div>
+    <div class="nav-item" data-panel="finance">
+      <span class="nav-icon">💰</span><span class="nav-label">财务管家</span>
+    </div>
+
+    <div class="nav-section-title">🌳 养成 & 日程</div>
+    <div class="nav-item" data-panel="tree">
+      <span class="nav-icon">🌳</span><span class="nav-label">养树小游戏</span>
+    </div>
+    <div class="nav-item" data-panel="calendar">
+      <span class="nav-icon">📅</span><span class="nav-label">日历看板</span>
+    </div>
+  </nav>
+</aside>
+
+<!-- Main Area -->
+<div class="main-area" id="mainArea">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="mobile-menu-btn" onclick="toggleSidebar()">☰</div>
+      <div class="conan-badge">🕵️</div>
+      <div class="greeting" id="greetingText">Claire，今天也是充满干劲的一天！</div>
+    </div>
+    <div class="top-bar-right">
+      <button class="btn btn-outline btn-sm" onclick="exportData()" title="导出所有数据为备份文件">💾 备份</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFileInput').click()" title="从备份文件恢复数据">📂 恢复</button>
+      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
+      📅 <span id="todayDate"></span>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div class="panels-container">
+
+    <!-- Welcome / Dashboard -->
+    <div class="panel active" id="panel-welcome">
+      <div class="welcome-section">
+        <div class="welcome-anime">🕵️‍♀️</div>
+        <h1 class="welcome-title" style="background:linear-gradient(135deg,var(--purple-300),var(--accent-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+          Claire，今天也是充满干劲的一天！
+        </h1>
+        <p class="welcome-sub">福尔摩斯已就位，随时准备协助你的各项工作 🎯</p>
+      </div>
+
+      <div class="quick-stats" id="quickStats"></div>
+
+      <!-- Decorative footprints -->
+      <div style="position:relative; padding: 20px;">
+        <span class="footprint-decor" style="top:0;left:10%">👣</span>
+        <span class="footprint-decor" style="top:30px;left:20%">👣</span>
+        <span class="footprint-decor" style="top:15px;left:30%">👣</span>
+        <span class="bowtie-decor" style="top:0;right:15%">🎀</span>
+        <span class="bowtie-decor" style="top:25px;right:25%">🔍</span>
+      </div>
+    </div>
+
+    <!-- Academic Research -->
+    <div class="panel" id="panel-academic">
+      <h2 style="margin-bottom:20px;">🎓 学术科研</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon purple">📚</div>
+            <div>
+              <div class="card-title">文献阅读进度</div>
+              <div class="card-subtitle">国际贸易 / 计量分析 / 实证研究</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>本周文献阅读</span><span id="litCount">0/5 篇</span></div>
+            <div class="progress-bar"><div class="progress-fill purple" id="litProgress" style="width:0%"></div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>实证分析进度</span><span id="empCount">0/3 组</span></div>
+            <div class="progress-bar"><div class="progress-fill pink" id="empProgress" style="width:0%"></div></div>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="updateAcademic('lit')">📖 读完一篇文献</button>
+            <button class="btn btn-outline btn-sm" onclick="updateAcademic('emp')">💻 完成一组分析</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon pink">📝</div>
+            <div>
+              <div class="card-title">核心观点笔记</div>
+              <div class="card-subtitle">快速记录研究灵感</div>
+            </div>
+          </div>
+          <textarea id="researchNote" placeholder="记录你的研究观点..." style="width:100%;height:120px;background:rgba(255,255,255,0.05);border:1px solid var(--border-color);border-radius:12px;color:var(--text-primary);padding:12px;font-size:13px;font-family:inherit;resize:vertical;outline:none;"></textarea>
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="saveResearchNote()">💾 保存笔记</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Reading -->
+    <div class="panel" id="panel-reading">
+      <h2 style="margin-bottom:20px;">📖 每日阅读</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon cyan">⏱️</div>
+            <div>
+              <div class="card-title">20分钟阅读计时器</div>
+              <div class="card-subtitle" id="readingModeLabel">模式：电子书 📱</div>
+            </div>
+          </div>
+          <div class="timer-display" id="readingTimer">20:00</div>
+          <div class="timer-controls">
+            <button class="btn btn-primary" id="timerStartBtn" onclick="toggleReadingTimer()">▶ 开始</button>
+            <button class="btn btn-outline" onclick="resetReadingTimer()">↺ 重置</button>
+            <button class="btn btn-outline" id="readingModeBtn" onclick="toggleReadingMode()">📱 切换模式</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon green">📊</div>
+            <div>
+              <div class="card-title">阅读统计</div>
+              <div class="card-subtitle">坚持阅读，每天进步</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;">
+            <div>
+              <div style="font-size:32px;font-weight:800;color:var(--accent-cyan);" id="readingStreak">0</div>
+              <div style="font-size:11px;color:var(--text-muted);">连续打卡(天)</div>
+            </div>
+            <div>
+              <div style="font-size:32px;font-weight:800;color:var(--purple-300);" id="readingTotalMin">0</div>
+              <div style="font-size:11px;color:var(--text-muted);">累计时长(分钟)</div>
+            </div>
+            <div>
+              <div style="font-size:32px;font-weight:800;color:var(--accent-gold);" id="readingBooks">0</div>
+              <div style="font-size:11px;color:var(--text-muted);">已读书籍</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px;">
+            <button class="btn btn-success btn-sm" onclick="completeReading()">✅ 完成今日阅读打卡</button>
+            <button class="btn btn-outline btn-sm" onclick="addBook()">📕 +1 本书</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- English Learning -->
+    <div class="panel" id="panel-english">
+      <h2 style="margin-bottom:20px;">🔤 英语进阶</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon purple">📝</div>
+            <div>
+              <div class="card-title">每日单词背诵</div>
+              <div class="card-subtitle">目标：20分钟 / 50个单词</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>今日单词</span><span id="wordCount">0/50</span></div>
+            <div class="progress-bar"><div class="progress-fill purple" id="wordProgress" style="width:0%"></div></div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="addWords(10)">+10 单词</button>
+            <button class="btn btn-primary btn-sm" onclick="addWords(20)">+20 单词</button>
+            <button class="btn btn-outline btn-sm" onclick="addWords(50)">全部完成</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon pink">🎧</div>
+            <div>
+              <div class="card-title">雅思精听</div>
+              <div class="card-subtitle">目标：20分钟</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>今日精听</span><span id="listenStatus">未完成</span></div>
+            <div class="progress-bar"><div class="progress-fill pink" id="listenProgress" style="width:0%"></div></div>
+          </div>
+          <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="completeListening()">✅ 完成今日精听打卡</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="card-header">
+          <div class="card-icon cyan">🎙️</div>
+          <div>
+            <div class="card-title">每周影子跟读</div>
+            <div class="card-subtitle">每周20分钟录制3分钟跟读练习</div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>本周跟读</span><span id="shadowStatus">未完成</span></div>
+          <div class="progress-bar"><div class="progress-fill cyan" id="shadowProgress" style="width:0%"></div></div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="completeShadow()">🎙️ 完成本周跟读</button>
+      </div>
+    </div>
+
+    <!-- Sports & Fitness -->
+    <div class="panel" id="panel-sports">
+      <h2 style="margin-bottom:20px;">🏊‍ 运动健身</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon cyan">🏊</div>
+            <div>
+              <div class="card-title">每周游泳</div>
+              <div class="card-subtitle">目标：至少3次/周</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>本周完成</span><span id="swimCount">0/3 次</span></div>
+            <div class="progress-bar"><div class="progress-fill cyan" id="swimProgress" style="width:0%"></div></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addSwim()">🏊 完成一次游泳</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon green">🏸</div>
+            <div>
+              <div class="card-title">每周羽毛球</div>
+              <div class="card-subtitle">目标：1次/周</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>本周完成</span><span id="badmintonStatus">未完成</span></div>
+            <div class="progress-bar"><div class="progress-fill green" id="badmintonProgress" style="width:0%"></div></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addBadminton()">🏸 完成一次羽毛球</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="card-header">
+          <div class="card-icon pink">🦶</div>
+          <div>
+            <div class="card-title">睡前足部放松</div>
+            <div class="card-subtitle">每组30秒 × 2组：脚趾抓地 | 勾脚 | 脚腕开合 | 绕脚踝</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">脚趾抓地</div>
+            <button class="btn btn-outline btn-sm" id="foot1" onclick="completeFootEx(1)">未完成</button>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">勾脚</div>
+            <button class="btn btn-outline btn-sm" id="foot2" onclick="completeFootEx(2)">未完成</button>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">脚腕开合</div>
+            <button class="btn btn-outline btn-sm" id="foot3" onclick="completeFootEx(3)">未完成</button>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">绕脚踝</div>
+            <button class="btn btn-outline btn-sm" id="foot4" onclick="completeFootEx(4)">未完成</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Art Inspiration -->
+    <div class="panel" id="panel-art">
+      <h2 style="margin-bottom:20px;">🎨 画画灵感</h2>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-icon pink">📅</div>
+          <div>
+            <div class="card-title">线稿练习提醒</div>
+            <div class="card-subtitle">每两周的星期五 — "Claire，本半月的线稿练习时间到了！"</div>
+          </div>
+        </div>
+        <div style="font-size:14px;color:var(--text-secondary);">
+          下一次提醒：<span style="color:var(--accent-gold);font-weight:600;" id="nextArtReminder">计算中...</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon purple">🖼️</div>
+          <div>
+            <div class="card-title">热门动漫角色参考</div>
+            <div class="card-subtitle">动态推荐当下最火的二次元作品线稿参考</div>
+          </div>
+        </div>
+        <div class="art-grid" id="artGrid"></div>
+        <div style="margin-top:12px;">
+          <button class="btn btn-primary btn-sm" onclick="refreshArt()">🔄 刷新推荐</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Finance -->
+    <div class="panel" id="panel-finance">
+      <h2 style="margin-bottom:20px;">💰 储蓄计划与财务管家</h2>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-icon gold">🏦</div>
+          <div>
+            <div class="card-title">多账户看板</div>
+            <div class="card-subtitle">总资产：<span style="color:var(--accent-gold);font-weight:700;" id="totalAssets">¥0.00</span></div>
+          </div>
+        </div>
+        <div class="finance-grid" id="accountGrid"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon pink">💳</div>
+          <div>
+            <div class="card-title">快速记账</div>
+            <div class="card-subtitle">记录每日收支</div>
+          </div>
+        </div>
+        <div class="transaction-form">
+          <select class="form-select" id="txType" style="min-width:70px;">
+            <option value="expense">支出</option>
+            <option value="income">收入</option>
+          </select>
+          <select class="form-select" id="txAccount" style="min-width:90px;"></select>
+          <input class="form-input" type="number" id="txAmount" placeholder="金额" step="0.01" min="0" style="width:100px;">
+          <input class="form-input" type="text" id="txDesc" placeholder="备注" style="flex:1;min-width:120px;">
+          <button class="btn btn-primary btn-sm" onclick="addTransaction()">记账</button>
+        </div>
+        <div class="transaction-list" id="txList"></div>
+      </div>
+    </div>
+
+    <!-- Tree Planting Game -->
+    <div class="panel" id="panel-tree">
+      <h2 style="margin-bottom:20px;">🌳 养成小树</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="tree-container">
+            <div class="tree-emoji" id="treeEmoji">🌱</div>
+            <div class="tree-status healthy" id="treeStatus">茁壮成长中 ✨</div>
+            <div class="tree-level" id="treeLevel">Lv.1 · 经验 0/100</div>
+            <div class="progress-wrap" style="max-width:200px;margin:12px auto;">
+              <div class="progress-bar"><div class="progress-fill green" id="treeExpProgress" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon cyan">💧</div>
+            <div>
+              <div class="card-title">水源 — 喝水打卡</div>
+              <div class="card-subtitle">每日至少2杯水</div>
+            </div>
+          </div>
+          <div class="water-cups">
+            <div class="water-cup" id="cup1" onclick="drinkWater(1)">💧<br>杯1</div>
+            <div class="water-cup" id="cup2" onclick="drinkWater(2)">💧<br>杯2</div>
+          </div>
+          <p style="text-align:center;font-size:12px;color:var(--text-muted);">今日已喝 <span id="waterCount" style="color:var(--accent-cyan);font-weight:700;">0</span>/2 杯</p>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-header">
+            <div class="card-icon gold">🌾</div>
+            <div>
+              <div class="card-title">养分 — 单词背诵绑定</div>
+              <div class="card-subtitle">每日至少50个单词（联动英语模块）</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>今日单词</span><span id="treeWordCount">0/50</span></div>
+            <div class="progress-bar"><div class="progress-fill gold" id="treeWordProgress" style="width:0%"></div></div>
+          </div>
+          <p style="font-size:11px;color:var(--text-muted);margin-top:8px;">💡 同时满足水分+养分双达标，小树即可获得生长经验升级！</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="panel" id="panel-calendar">
+      <h2 style="margin-bottom:20px;">📅 日历看板</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="calendar-header">
+            <span class="calendar-month" id="calMonth"></span>
+            <div class="calendar-nav">
+              <button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">◀</button>
+              <button class="btn btn-outline btn-sm" onclick="changeMonth(1)">▶</button>
+            </div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon pink">📋</div>
+            <div>
+              <div class="card-title">今日临时清单</div>
+              <div class="card-subtitle">快速新增临时任务</div>
+            </div>
+          </div>
+          <div class="todo-list" id="todoList"></div>
+          <div class="todo-input-wrap">
+            <input class="todo-input" id="todoInput" placeholder="添加新任务..." onkeydown="if(event.key==='Enter')addTodo()">
+            <button class="btn btn-primary btn-sm" onclick="addTodo()">+</button>
+          </div>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-header">
+            <div class="card-icon cyan">🔔</div>
+            <div>
+              <div class="card-title">近期事件提醒</div>
+              <div class="card-subtitle">自动联动所有项目计划</div>
+            </div>
+          </div>
+          <div id="upcomingEvents" style="font-size:13px;color:var(--text-secondary);"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- AI Chat Button -->
+<button class="ai-chat-btn" onclick="toggleChat()" title="福尔摩斯AI助手">🕵️</button>
+
+<!-- AI Chat Panel -->
+<div class="ai-chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-icon">🕵️</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">福尔摩斯 AI 助手</div>
+      <div class="chat-header-status">🟢 在线 · 随时待命</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot">
+      🕵️ <strong>Claire，晚上好！</strong><br>
+      我是福尔摩斯，你的AI助手。我可以帮你：<br>
+      • 查看各项任务完成情况<br>
+      • 联动各模块数据<br>
+      • 帮你改动项目进度<br>
+      • 自动录入财务变动<br>
+      <br>
+      试试跟我说：<br>
+      "我今天读了一篇论文"<br>
+      "帮我记一笔支出，工行卡，50元买咖啡"<br>
+      "查看小树状态"
+    </div>
+  </div>
+  <div class="chat-input-wrap">
+    <input class="chat-input" id="chatInput" placeholder="和福尔摩斯对话..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">▶</button>
+  </div>
+</div>
+
+<script>
+// ===== DATA STORE (localStorage) =====
+const STORE_KEY = 'workbuddy_claire';
+let store = loadStore();
+
+function defaultStore() {
+  return {
+    avatar: '',
+    academic: { lit: 0, litMax: 5, emp: 0, empMax: 3, notes: '' },
+    reading: { streak: 0, totalMin: 0, books: 0, mode: 'ebook', lastDate: '' },
+    english: { words: 0, wordMax: 50, listening: false, shadow: false },
+    sports: { swim: 0, swimMax: 3, badminton: false, footEx: [false, false, false, false] },
+    tree: { level: 1, exp: 0, expMax: 100, water: 0, waterMax: 2, wordsLinked: 0 },
+    accounts: [
+      { id: 'icbc', name: '工商银行', emoji: '🏦', balance: 0 },
+      { id: 'ccb', name: '建设银行', emoji: '🏗️', balance: 0 },
+      { id: 'psbc', name: '邮政储蓄', emoji: '📮', balance: 0 },
+      { id: 'cmb', name: '招商银行', emoji: '🐬', balance: 0 },
+      { id: 'alipay', name: '支付宝', emoji: '💙', balance: 0 },
+      { id: 'wechat', name: '微信支付', emoji: '💚', balance: 0 }
+    ],
+    transactions: [],
+    todos: [],
+    weekReset: getWeekKey()
+  };
+}
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      return { ...defaultStore(), ...saved };
+    }
+  } catch(e) {}
+  return defaultStore();
+}
+
+function saveStore() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(store));
+}
+
+function getWeekKey() {
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(now.getDate() - now.getDay());
+  return start.toISOString().slice(0, 10);
+}
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ===== Weekly Reset =====
+function checkWeekReset() {
+  const wk = getWeekKey();
+  if (store.weekReset !== wk) {
+    store.sports.swim = 0;
+    store.sports.badminton = false;
+    store.sports.footEx = [false, false, false, false];
+    store.english.shadow = false;
+    store.weekReset = wk;
+    saveStore();
+  }
+}
+
+// ===== Daily Reset =====
+function checkDailyReset() {
+  const today = getTodayKey();
+  if (store._lastDailyReset !== today) {
+    store.academic.lit = 0;
+    store.academic.emp = 0;
+    store.english.words = 0;
+    store.english.listening = false;
+    store.tree.water = 0;
+    store.tree.wordsLinked = 0;
+    store._lastDailyReset = today;
+    saveStore();
+  }
+}
+
+// ===== Init =====
+function init() {
+  checkWeekReset();
+  checkDailyReset();
+  updateAllUI();
+
+  // Update date
+  const now = new Date();
+  document.getElementById('todayDate').textContent =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${'日一二三四五六'[now.getDay()]}`;
+
+  // Greeting based on time
+  const hour = now.getHours();
+  let greeting = 'Claire，今天也是充满干劲的一天！';
+  if (hour < 6) greeting = 'Claire，夜深了，注意休息哦！🌙';
+  else if (hour < 9) greeting = 'Claire，早安！新的一天开始啦！☀️';
+  else if (hour < 12) greeting = 'Claire，上午好！今天也是充满干劲的一天！';
+  else if (hour < 14) greeting = 'Claire，午安！别忘了给小树浇水哦！💧';
+  else if (hour < 18) greeting = 'Claire，下午好！继续加油！';
+  else if (hour < 21) greeting = 'Claire，晚上好！今天辛苦了！';
+  else greeting = 'Claire，不早了，记得睡前放松哦！🌙';
+  document.getElementById('greetingText').textContent = greeting;
+
+  // Avatar
+  if (store.avatar) {
+    document.getElementById('avatarImg').src = store.avatar;
+    document.getElementById('avatarImg').style.display = 'block';
+    document.getElementById('avatarPlaceholder').style.display = 'none';
+  }
+
+  // Art grid
+  renderArtGrid();
+
+  renderCalendar();
+}
+
+// ===== Avatar =====
+function handleAvatarUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    store.avatar = e.target.result;
+    saveStore();
+    document.getElementById('avatarImg').src = store.avatar;
+    document.getElementById('avatarImg').style.display = 'block';
+    document.getElementById('avatarPlaceholder').style.display = 'none';
+    showToast('头像已更新！📷');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== Sidebar =====
+function toggleSidebarDesktop() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('mainArea');
+  sidebar.classList.toggle('collapsed');
+  main.classList.toggle('expanded');
+}
+
+function toggleSidebar() {
+  if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('show');
+  } else {
+    toggleSidebarDesktop();
+  }
+}
+
+// ===== Navigation =====
+document.querySelectorAll('.nav-item[data-panel]').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+
+    const panelId = this.dataset.panel;
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('panel-' + panelId);
+    if (panel) panel.classList.add('active');
+
+    // Close mobile sidebar
+    if (window.innerWidth <= 768) {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('mobileOverlay').classList.remove('show');
+    }
+
+    // Refresh certain panels
+    if (panelId === 'calendar') renderCalendar();
+    if (panelId === 'finance') renderFinance();
+    if (panelId === 'tree') updateTreeUI();
+    if (panelId === 'welcome') updateQuickStats();
+  });
+});
+
+// ===== Toast =====
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ===== Quick Stats =====
+function updateQuickStats() {
+  document.getElementById('quickStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">${store.reading.streak}</div>
+      <div class="stat-label">📖 连续阅读(天)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${store.english.words}</div>
+      <div class="stat-label">🔤 今日单词</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${store.sports.swim}</div>
+      <div class="stat-label">🏊 本周游泳</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">Lv.${store.tree.level}</div>
+      <div class="stat-label">🌳 小树等级</div>
+    </div>
+  `;
+}
+
+// ===== Academic =====
+function updateAcademic(type) {
+  if (type === 'lit') {
+    store.academic.lit = Math.min(store.academic.lit + 1, store.academic.litMax);
+    showToast('📖 已记录一篇文献阅读！');
+    addChatMsgBot('Claire，已记录一篇文献阅读进度！当前 ' + store.academic.lit + '/' + store.academic.litMax + ' 篇。');
+  } else {
+    store.academic.emp = Math.min(store.academic.emp + 1, store.academic.empMax);
+    showToast('💻 已记录一组实证分析！');
+    addChatMsgBot('Claire，已记录一组实证分析完成！当前 ' + store.academic.emp + '/' + store.academic.empMax + ' 组。');
+  }
+  saveStore();
+  updateAllUI();
+}
+
+function saveResearchNote() {
+  const note = document.getElementById('researchNote').value.trim();
+  if (!note) return;
+  store.academic.notes = note;
+  saveStore();
+  showToast('💾 笔记已保存！');
+  addChatMsgBot('Claire，我已保存你的研究笔记。');
+}
+
+function updateAcademicUI() {
+  document.getElementById('litCount').textContent = store.academic.lit + '/' + store.academic.litMax + ' 篇';
+  document.getElementById('litProgress').style.width = (store.academic.lit / store.academic.litMax * 100) + '%';
+  document.getElementById('empCount').textContent = store.academic.emp + '/' + store.academic.empMax + ' 组';
+  document.getElementById('empProgress').style.width = (store.academic.emp / store.academic.empMax * 100) + '%';
+  document.getElementById('researchNote').value = store.academic.notes || '';
+}
+
+// ===== Reading =====
+let readingTimerInterval = null;
+let readingSecondsLeft = 1200; // 20 min
+let readingRunning = false;
+
+function toggleReadingTimer() {
+  if (readingRunning) {
+    clearInterval(readingTimerInterval);
+    readingRunning = false;
+    document.getElementById('timerStartBtn').textContent = '▶ 继续';
+  } else {
+    readingRunning = true;
+    document.getElementById('timerStartBtn').textContent = '⏸ 暂停';
+    readingTimerInterval = setInterval(() => {
+      readingSecondsLeft--;
+      if (readingSecondsLeft <= 0) {
+        clearInterval(readingTimerInterval);
+        readingRunning = false;
+        readingSecondsLeft = 0;
+        document.getElementById('timerStartBtn').textContent = '▶ 开始';
+        showToast('⏰ 阅读时间到！记得打卡哦~');
+        addChatMsgBot('Claire，20分钟阅读时间到！别忘了打卡记录哦~ 📖');
+      }
+      updateReadingTimerDisplay();
+    }, 1000);
+  }
+}
+
+function resetReadingTimer() {
+  clearInterval(readingTimerInterval);
+  readingRunning = false;
+  readingSecondsLeft = 1200;
+  document.getElementById('timerStartBtn').textContent = '▶ 开始';
+  updateReadingTimerDisplay();
+}
+
+function updateReadingTimerDisplay() {
+  const m = Math.floor(readingSecondsLeft / 60);
+  const s = readingSecondsLeft % 60;
+  document.getElementById('readingTimer').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function toggleReadingMode() {
+  store.reading.mode = store.reading.mode === 'ebook' ? 'paper' : 'ebook';
+  saveStore();
+  const label = store.reading.mode === 'ebook' ? '电子书 📱' : '纸质书 📚';
+  document.getElementById('readingModeLabel').textContent = '模式：' + label;
+  document.getElementById('readingModeBtn').textContent = store.reading.mode === 'ebook' ? '📚 切换纸质' : '📱 切换电子';
+}
+
+function completeReading() {
+  const today = getTodayKey();
+  if (store.reading.lastDate === today) {
+    showToast('今日已打卡，明天再来吧！');
+    return;
+  }
+  store.reading.lastDate = today;
+  store.reading.streak++;
+  store.reading.totalMin += 20;
+  saveStore();
+  updateReadingUI();
+  showToast('✅ 阅读打卡成功！连续 ' + store.reading.streak + ' 天！');
+  addChatMsgBot('Claire，太棒了！今日阅读打卡成功！已连续 ' + store.reading.streak + ' 天阅读！📚');
+  updateReadingBadge();
+}
+
+function addBook() {
+  store.reading.books++;
+  saveStore();
+  updateReadingUI();
+  showToast('📕 已记录一本书！累计 ' + store.reading.books + ' 本');
+}
+
+function updateReadingUI() {
+  document.getElementById('readingStreak').textContent = store.reading.streak;
+  document.getElementById('readingTotalMin').textContent = store.reading.totalMin;
+  document.getElementById('readingBooks').textContent = store.reading.books;
+}
+
+function updateReadingBadge() {
+  const badge = document.getElementById('readingBadge');
+  badge.textContent = store.reading.streak + '天';
+  if (store.reading.streak >= 7) badge.style.background = 'var(--accent-gold)';
+}
+
+// ===== English =====
+function addWords(n) {
+  store.english.words = Math.min(store.english.words + n, store.english.wordMax);
+  store.tree.wordsLinked = Math.min(store.english.words, store.tree.wordsLinked + n);
+  saveStore();
+  updateEnglishUI();
+  updateTreeUI();
+  updateQuickStats();
+  if (store.english.words >= store.english.wordMax) {
+    showToast('🎉 今日单词目标达成！');
+    addChatMsgBot('Claire，太厉害了！今日50个单词目标达成！小树也获得了养分~ 🌾');
+  }
+}
+
+function completeListening() {
+  store.english.listening = true;
+  saveStore();
+  updateEnglishUI();
+  showToast('✅ 雅思精听打卡完成！');
+  addChatMsgBot('Claire，雅思精听打卡成功！坚持就是胜利~ 🎧');
+}
+
+function completeShadow() {
+  store.english.shadow = true;
+  saveStore();
+  updateEnglishUI();
+  showToast('✅ 本周影子跟读完成！');
+}
+
+function updateEnglishUI() {
+  document.getElementById('wordCount').textContent = store.english.words + '/' + store.english.wordMax;
+  document.getElementById('wordProgress').style.width = (store.english.words / store.english.wordMax * 100) + '%';
+  document.getElementById('listenStatus').textContent = store.english.listening ? '✅ 已完成' : '未完成';
+  document.getElementById('listenProgress').style.width = store.english.listening ? '100%' : '0%';
+  document.getElementById('shadowStatus').textContent = store.english.shadow ? '✅ 已完成' : '未完成';
+  document.getElementById('shadowProgress').style.width = store.english.shadow ? '100%' : '0%';
+}
+
+// ===== Sports =====
+function addSwim() {
+  store.sports.swim = Math.min(store.sports.swim + 1, store.sports.swimMax);
+  saveStore();
+  updateSportsUI();
+  updateQuickStats();
+  showToast('🏊 游泳打卡 +1！本周 ' + store.sports.swim + '/' + store.sports.swimMax + ' 次');
+}
+
+function addBadminton() {
+  store.sports.badminton = true;
+  saveStore();
+  updateSportsUI();
+  showToast('🏸 羽毛球打卡完成！');
+}
+
+function completeFootEx(n) {
+  store.sports.footEx[n-1] = true;
+  saveStore();
+  updateSportsUI();
+  showToast('🦶 足部放松已完成一项！');
+}
+
+function updateSportsUI() {
+  document.getElementById('swimCount').textContent = store.sports.swim + '/' + store.sports.swimMax + ' 次';
+  document.getElementById('swimProgress').style.width = (store.sports.swim / store.sports.swimMax * 100) + '%';
+  document.getElementById('badmintonStatus').textContent = store.sports.badminton ? '✅ 已完成' : '未完成';
+  document.getElementById('badmintonProgress').style.width = store.sports.badminton ? '100%' : '0%';
+  for (let i = 1; i <= 4; i++) {
+    const btn = document.getElementById('foot' + i);
+    if (store.sports.footEx[i-1]) {
+      btn.textContent = '✅ 完成';
+      btn.className = 'btn btn-success btn-sm';
+    } else {
+      btn.textContent = '未完成';
+      btn.className = 'btn btn-outline btn-sm';
+    }
+  }
+}
+
+// ===== Tree Game =====
+function drinkWater(n) {
+  if (n <= store.tree.water) return;
+  store.tree.water = n;
+  saveStore();
+  updateTreeUI();
+  showToast('💧 喝水打卡！今日 ' + store.tree.water + '/' + store.tree.waterMax + ' 杯');
+  if (store.tree.water >= store.tree.waterMax) {
+    addChatMsgBot('Claire，今日饮水达标！小树的水分充足啦~ 💧');
+  }
+  checkTreeGrowth();
+}
+
+function checkTreeGrowth() {
+  const waterOk = store.tree.water >= store.tree.waterMax;
+  const nutrientOk = store.tree.wordsLinked >= (store.tree.wordMax || 50);
+  // Use 50 as the nutrient target
+  const wordTarget = 50;
+  const wordOk = store.tree.wordsLinked >= wordTarget;
+
+  if (waterOk && wordOk && !store.tree._growthToday) {
+    store.tree._growthToday = true;
+    store.tree.exp += 20;
+    if (store.tree.exp >= store.tree.expMax) {
+      store.tree.exp -= store.tree.expMax;
+      store.tree.level++;
+      store.tree.expMax = Math.floor(store.tree.expMax * 1.3);
+      addChatMsgBot('🎉 Claire！小树升级了！现在是 Lv.' + store.tree.level + '！继续加油！🌳');
+    }
+    saveStore();
+    updateTreeUI();
+    updateQuickStats();
+    showToast('🌳 小树获得生长经验！');
+    addChatMsgBot('Claire，今天水分和养分双达标，小树获得了生长经验！✨');
+  }
+}
+
+function updateTreeUI() {
+  const level = store.tree.level;
+  let emoji = '🌱';
+  if (level >= 10) emoji = '🌳';
+  else if (level >= 5) emoji = '🌲';
+  else if (level >= 3) emoji = '🪴';
+  document.getElementById('treeEmoji').textContent = emoji;
+
+  document.getElementById('treeLevel').textContent = 'Lv.' + level + ' · 经验 ' + store.tree.exp + '/' + store.tree.expMax;
+  document.getElementById('treeExpProgress').style.width = (store.tree.exp / store.tree.expMax * 100) + '%';
+
+  // Status
+  const waterOk = store.tree.water >= store.tree.waterMax;
+  const wordTarget = 50;
+  const wordOk = store.tree.wordsLinked >= wordTarget;
+
+  const statusEl = document.getElementById('treeStatus');
+  statusEl.className = 'tree-status';
+  if (!waterOk && !wordOk) {
+    statusEl.textContent = '⚠️ 缺水 & 营养不良 Warning';
+    statusEl.classList.add('double-warn');
+  } else if (!waterOk) {
+    statusEl.textContent = '💧 缺水 Warning';
+    statusEl.classList.add('water-warn');
+  } else if (!wordOk) {
+    statusEl.textContent = '🌾 营养不良 Warning';
+    statusEl.classList.add('nutrient-warn');
+  } else {
+    statusEl.textContent = '茁壮成长中 ✨';
+    statusEl.classList.add('healthy');
+  }
+
+  // Water cups
+  document.getElementById('cup1').classList.toggle('filled', store.tree.water >= 1);
+  document.getElementById('cup2').classList.toggle('filled', store.tree.water >= 2);
+  document.getElementById('waterCount').textContent = store.tree.water;
+
+  // Tree word count
+  document.getElementById('treeWordCount').textContent = store.tree.wordsLinked + '/' + wordTarget;
+  document.getElementById('treeWordProgress').style.width = (Math.min(store.tree.wordsLinked, wordTarget) / wordTarget * 100) + '%';
+}
+
+// ===== Calendar =====
+let calYear, calMonth;
+function renderCalendar() {
+  const now = new Date();
+  if (!calYear) { calYear = now.getFullYear(); calMonth = now.getMonth(); }
+
+  document.getElementById('calMonth').textContent = calYear + '年 ' + (calMonth + 1) + '月';
+
+  const grid = document.getElementById('calendarGrid');
+  const headers = ['日', '一', '二', '三', '四', '五', '六'];
+  let html = headers.map(h => '<div class="calendar-day-header">' + h + '</div>').join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+
+  // Event dates (biweekly Friday for art, quarterly finance, weekly sports)
+  const eventDates = new Set();
+  // Biweekly Fridays
+  const firstOfYear = new Date(calYear, 0, 1);
+  let friday = new Date(calYear, calMonth, 1);
+  while (friday.getDay() !== 5) friday.setDate(friday.getDate() + 1);
+  while (friday.getMonth() === calMonth) {
+    const weekNum = Math.floor((friday - firstOfYear) / (7 * 86400000));
+    if (weekNum % 2 === 0) {
+      eventDates.add(friday.toISOString().slice(0, 10));
+    }
+    friday.setDate(friday.getDate() + 7);
+  }
+  // Quarterly finance (Jan 15, Apr 15, Jul 15, Oct 15)
+  [0, 3, 6, 9].forEach(m => {
+    const d = calYear + '-' + String(m + 1).padStart(2, '0') + '-15';
+    const dd = new Date(calYear, m, 15);
+    if (dd.getMonth() === calMonth) eventDates.add(d);
+  });
+
+  // Prev month
+  for (let i = firstDay - 1; i >= 0; i--) {
+    html += '<div class="calendar-day other-month">' + (prevMonthDays - i) + '</div>';
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    let cls = 'calendar-day';
+    if (dateStr === todayStr) cls += ' today';
+    if (eventDates.has(dateStr)) cls += ' event';
+    html += '<div class="' + cls + '">' + d + (eventDates.has(dateStr) ? '<div class="dot"></div>' : '') + '</div>';
+  }
+
+  // Next month
+  const remaining = 42 - (firstDay + daysInMonth);
+  for (let d = 1; d <= remaining; d++) {
+    html += '<div class="calendar-day other-month">' + d + '</div>';
+  }
+
+  grid.innerHTML = html;
+  renderUpcomingEvents();
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderUpcomingEvents() {
+  const now = new Date();
+  const events = [];
+
+  // Next biweekly Friday for art
+  let friday = new Date(now);
+  while (friday.getDay() !== 5) friday.setDate(friday.getDate() + 1);
+  const firstOfYear = new Date(friday.getFullYear(), 0, 1);
+  while (true) {
+    const weekNum = Math.floor((friday - firstOfYear) / (7 * 86400000));
+    if (weekNum % 2 === 0 && friday > now) {
+      events.push({ date: friday.toISOString().slice(0, 10), text: '🎨 线稿练习日 — "Claire，本半月的线稿练习时间到了！"', type: 'art' });
+      break;
+    }
+    friday.setDate(friday.getDate() + 14);
+  }
+
+  // Next quarter finance
+  const quarterMonths = [0, 3, 6, 9];
+  for (const m of quarterMonths) {
+    const d = new Date(now.getFullYear(), m, 15);
+    if (d > now) {
+      events.push({ date: d.toISOString().slice(0, 10), text: '📊 季度财务汇报', type: 'finance' });
+      break;
+    }
+  }
+
+  // Weekly sports
+  const nextMon = new Date(now);
+  nextMon.setDate(now.getDate() + (8 - now.getDay()) % 7);
+  events.push({ date: nextMon.toISOString().slice(0, 10), text: '🏊 新一周游泳 & 羽毛球目标刷新', type: 'sports' });
+
+  // Art next reminder display
+  const artEvent = events.find(e => e.type === 'art');
+  if (artEvent) {
+    document.getElementById('nextArtReminder').textContent = artEvent.date;
+  }
+
+  // Render
+  document.getElementById('upcomingEvents').innerHTML = events
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(e => '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;"><span>' + e.text + '</span><span style="color:var(--accent-gold);font-size:12px;">' + e.date + '</span></div>')
+    .join('');
+}
+
+// ===== Todo =====
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (!text) return;
+  store.todos.push({ text, done: false, time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) });
+  saveStore();
+  renderTodos();
+  input.value = '';
+  showToast('📋 任务已添加！');
+}
+
+function toggleTodo(index) {
+  store.todos[index].done = !store.todos[index].done;
+  saveStore();
+  renderTodos();
+}
+
+function deleteTodo(index) {
+  store.todos.splice(index, 1);
+  saveStore();
+  renderTodos();
+}
+
+function renderTodos() {
+  document.getElementById('todoList').innerHTML = store.todos.map((t, i) => `
+    <div class="todo-item ${t.done ? 'done' : ''}">
+      <div class="todo-check" onclick="toggleTodo(${i})"></div>
+      <span class="todo-text">${t.text}</span>
+      <span class="todo-time">${t.time}</span>
+      <span class="todo-delete" onclick="deleteTodo(${i})">🗑️</span>
+    </div>
+  `).join('') || '<div style="text-align:center;color:var(--text-muted);padding:20px;">暂无任务，添加一个吧~</div>';
+}
+
+// ===== Finance =====
+function renderFinance() {
+  // Accounts
+  const totalAssets = store.accounts.reduce((sum, a) => sum + a.balance, 0);
+  document.getElementById('totalAssets').textContent = '¥' + totalAssets.toLocaleString('zh-CN', { minimumFractionDigits: 2 });
+
+  document.getElementById('accountGrid').innerHTML = store.accounts.map(a => `
+    <div class="account-card">
+      <div class="account-name">${a.emoji} ${a.name}</div>
+      <div class="account-balance">¥${a.balance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
+    </div>
+  `).join('');
+
+  // Transaction form account selector
+  const sel = document.getElementById('txAccount');
+  sel.innerHTML = store.accounts.map(a => '<option value="' + a.id + '">' + a.name + '</option>').join('');
+
+  // Transactions (last 20)
+  const txs = store.transactions.slice(-20).reverse();
+  document.getElementById('txList').innerHTML = txs.map(t => `
+    <div class="tx-item">
+      <span>${t.date} · ${t.account} · ${t.desc || '无备注'}</span>
+      <span class="${t.type === 'income' ? 'tx-income' : 'tx-expense'}">
+        ${t.type === 'income' ? '+' : '-'}¥${t.amount.toFixed(2)}
+      </span>
+    </div>
+  `).join('') || '<div style="text-align:center;color:var(--text-muted);padding:12px;">暂无交易记录</div>';
+}
+
+function addTransaction() {
+  const type = document.getElementById('txType').value;
+  const accountId = document.getElementById('txAccount').value;
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const desc = document.getElementById('txDesc').value.trim();
+
+  if (!amount || amount <= 0) { showToast('请输入有效金额'); return; }
+
+  const account = store.accounts.find(a => a.id === accountId);
+  if (!account) return;
+
+  if (type === 'expense') {
+    account.balance -= amount;
+  } else {
+    account.balance += amount;
+  }
+
+  store.transactions.push({
+    date: new Date().toISOString().slice(0, 10),
+    type, account: account.name, amount, desc
+  });
+
+  saveStore();
+  renderFinance();
+  showToast('💳 记账成功！');
+  addChatMsgBot('Claire，已记录一笔' + (type === 'expense' ? '支出' : '收入') + '：' + account.name + ' ' + (type === 'expense' ? '-' : '+') + '¥' + amount.toFixed(2));
+
+  // Clear inputs
+  document.getElementById('txAmount').value = '';
+  document.getElementById('txDesc').value = '';
+}
+
+// ===== Art Inspiration =====
+const animeList = [
+  { title: '名侦探柯南', emoji: '🔍', chars: ['江户川柯南', '工藤新一', '毛利兰', '灰原哀', '怪盗基德'] },
+  { title: '鬼灭之刃', emoji: '⚔️', chars: ['灶门炭治郎', '灶门祢豆子', '我妻善逸', '富冈义勇', '蝴蝶忍'] },
+  { title: '咒术回战', emoji: '👊', chars: ['虎杖悠仁', '伏黑惠', '钉崎野蔷薇', '五条悟', '两面宿傩'] },
+  { title: '间谍过家家', emoji: '🥜', chars: ['洛伊德·福杰', '约尔·福杰', '阿尼亚', '邦德', '黄昏'] },
+  { title: '葬送的芙莉莲', emoji: '🧝', chars: ['芙莉莲', '菲伦', '修塔尔克', '辛美尔', '艾冉'] },
+  { title: '我推的孩子', emoji: '⭐', chars: ['星野爱', '星野爱久爱海', '星野瑠美衣', '有马加奈', '黑川赤音'] },
+  { title: '蓝色监狱', emoji: '⚽', chars: ['洁世一', '蜂乐回', '凪诚士郎', '糸师凛', '千切豹马'] },
+  { title: '坂本日常', emoji: '🛒', chars: ['坂本太郎', '朝仓信', '陆少糖', '篁', '南云'] },
+  { title: '药师少女的独语', emoji: '🧪', chars: ['猫猫', '壬氏', '高顺', '玉叶', '梨花'] },
+  { title: '怪兽8号', emoji: '🦖', chars: ['日比野卡夫卡', '亚白米娜', '四之宫琪歌露', '保科宗四郎', '市川雷诺'] },
+  { title: '防风少年', emoji: '🌸', chars: ['樱遥', '榆井秋彦', '杉下京太郎', '苏枋隼飞', '梅宫一'] },
+  { title: '胆大党', emoji: '👻', chars: ['绫濑桃', '高仓健', '星子', '爱罗', '圆城寺仁'] },
+];
+
+let artIdx = 0;
+function renderArtGrid() {
+  const grid = document.getElementById('artGrid');
+  const shuffled = [...animeList].sort(() => 0.5 - Math.random()).slice(0, 6);
+  grid.innerHTML = shuffled.map(a => `
+    <div class="art-card" onclick="showToast('${a.emoji} ${a.title} - 线稿参考')">
+      <div class="art-img">${a.emoji}</div>
+      <div class="art-info">
+        <div class="art-title">${a.title}</div>
+        <div class="art-source">热门角色：${a.chars.slice(0, 2).join('、')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function refreshArt() {
+  renderArtGrid();
+  showToast('🔄 已刷新热门推荐！');
+}
+
+// ===== AI Chat =====
+function toggleChat() {
+  document.getElementById('chatPanel').classList.toggle('open');
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addChatMsgUser(msg);
+  input.value = '';
+
+  // Process command
+  setTimeout(() => {
+    processChatCommand(msg);
+  }, 500);
+}
+
+function addChatMsgUser(msg) {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML += '<div class="chat-msg user">' + msg + '</div>';
+  container.scrollTop = container.scrollHeight;
+}
+
+function addChatMsgBot(msg) {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML += '<div class="chat-msg bot">' + msg + '</div>';
+  container.scrollTop = container.scrollHeight;
+}
+
+function processChatCommand(msg) {
+  const lower = msg.toLowerCase();
+
+  // Academic
+  if (lower.includes('论文') || lower.includes('文献')) {
+    updateAcademic('lit');
+    return;
+  }
+  if (lower.includes('实证') || lower.includes('分析') || lower.includes('代码')) {
+    updateAcademic('emp');
+    return;
+  }
+
+  // Finance
+  const financeMatch = msg.match(/(支出|消费|花了|收入|进账|转入)\s*[：:]*\s*(.+?卡|工行|建行|邮政|招商|支付宝|微信)\s*[，,]?\s*(\d+\.?\d*)\s*元?\s*[，,]?\s*(.*)/);
+  if (financeMatch || lower.includes('记账') || lower.includes('记一笔')) {
+    handleFinanceChat(msg);
+    return;
+  }
+
+  // Reading
+  if (lower.includes('阅读') && (lower.includes('打卡') || lower.includes('完成'))) {
+    completeReading();
+    return;
+  }
+
+  // English
+  if (lower.includes('单词') || lower.includes('背诵')) {
+    if (lower.includes('全部') || lower.includes('完成')) addWords(50);
+    else addWords(10);
+    return;
+  }
+  if (lower.includes('精听') || lower.includes('听力')) { completeListening(); return; }
+  if (lower.includes('跟读') || lower.includes('影子')) { completeShadow(); return; }
+
+  // Sports
+  if (lower.includes('游泳')) { addSwim(); return; }
+  if (lower.includes('羽毛球') || lower.includes('羽球')) { addBadminton(); return; }
+
+  // Tree
+  if (lower.includes('小树') || lower.includes('养树')) {
+    const waterOk = store.tree.water >= store.tree.waterMax;
+    const wordOk = store.tree.wordsLinked >= 50;
+    let status = '🌳 小树当前状态：Lv.' + store.tree.level + '\n';
+    status += '💧 水分：' + store.tree.water + '/' + store.tree.waterMax + (waterOk ? ' ✅' : ' ❌') + '\n';
+    status += '🌾 养分(单词)：' + store.tree.wordsLinked + '/50' + (wordOk ? ' ✅' : ' ❌') + '\n';
+    status += '经验：' + store.tree.exp + '/' + store.tree.expMax;
+    addChatMsgBot(status);
+    return;
+  }
+
+  // Status overview
+  if (lower.includes('状态') || lower.includes('情况') || lower.includes('进度') || lower.includes('总结')) {
+    let summary = '📊 <strong>Claire 今日工作总览</strong>\n\n';
+    summary += '📖 阅读：连续 ' + store.reading.streak + ' 天 | 累计 ' + store.reading.totalMin + ' 分钟 | ' + store.reading.books + ' 本书\n';
+    summary += '🔤 单词：' + store.english.words + '/' + store.english.wordMax + ' | 精听：' + (store.english.listening ? '✅' : '❌') + '\n';
+    summary += '🏊 游泳：' + store.sports.swim + '/' + store.sports.swimMax + ' | 羽毛球：' + (store.sports.badminton ? '✅' : '❌') + '\n';
+    summary += '🌳 小树：Lv.' + store.tree.level + ' | 水分：' + store.tree.water + '/' + store.tree.waterMax + ' | 养分：' + store.tree.wordsLinked + '/50\n';
+    summary += '💰 总资产：¥' + store.accounts.reduce((s,a) => s + a.balance, 0).toFixed(2);
+    addChatMsgBot(summary);
+    return;
+  }
+
+  // 喝水
+  if (lower.includes('喝水') || lower.includes('水')) {
+    if (store.tree.water < 2) {
+      drinkWater(store.tree.water + 1);
+    } else {
+      addChatMsgBot('Claire，今日已经喝够2杯水啦！小树水分充足~ 💧');
+    }
+    return;
+  }
+
+  // Default
+  addChatMsgBot('Claire，我听��了👂。你可以试试：\n• "我今天读了一篇论文"\n• "帮我记一笔支出，工行卡50元买咖啡"\n• "查看小树状态"\n• "完成阅读打卡"\n• "今日单词完成"\n• "我游泳了"');
+}
+
+function handleFinanceChat(msg) {
+  const lower = msg;
+  let type = lower.includes('收入') || lower.includes('进账') ? 'income' : 'expense';
+
+  // Find account
+  let accountName = '';
+  const accounts = ['工行', '建行', '邮政', '招商', '支付宝', '微信'];
+  for (const name of accounts) {
+    if (lower.includes(name)) {
+      if (name === '工行') accountName = '工商银行';
+      else if (name === '建行') accountName = '建设银行';
+      else if (name === '邮政') accountName = '邮政储蓄';
+      else if (name === '招商') accountName = '招商银行';
+      else if (name === '支付宝') accountName = '支付宝';
+      else if (name === '微信') accountName = '微信支付';
+      break;
+    }
+  }
+
+  if (!accountName) {
+    addChatMsgBot('Claire，请指定账户哦，比如：工行、建行、邮政、招商、支付宝、微信');
+    return;
+  }
+
+  // Find amount
+  const amountMatch = msg.match(/(\d+\.?\d*)\s*元/);
+  if (!amountMatch) {
+    addChatMsgBot('Claire，请告诉金额，比如"50元"');
+    return;
+  }
+  const amount = parseFloat(amountMatch[1]);
+
+  // Update account
+  const account = store.accounts.find(a => a.name === accountName);
+  if (!account) return;
+
+  if (type === 'expense') account.balance -= amount;
+  else account.balance += amount;
+
+  store.transactions.push({
+    date: new Date().toISOString().slice(0, 10),
+    type, account: accountName, amount,
+    desc: msg.replace(/支出|消费|花了|收入|进账|记账|记一笔/g, '').replace(/工行|建行|邮政|招商|支付宝|微信/g, '').replace(/\d+\.?\d*\s*元?/g, '').trim() || 'AI自动记账'
+  });
+
+  saveStore();
+  renderFinance();
+  addChatMsgBot('Claire，已自动记账：' + accountName + ' ' + (type === 'expense' ? '支出' : '收入') + ' ¥' + amount.toFixed(2) + ' ✅');
+}
+
+// ===== Update All UI =====
+function updateAllUI() {
+  updateAcademicUI();
+  updateReadingUI();
+  updateReadingBadge();
+  updateEnglishUI();
+  updateSportsUI();
+  updateTreeUI();
+  updateQuickStats();
+  updateReadingTimerDisplay();
+  renderTodos();
+  renderFinance();
+
+  // Reading mode label
+  const label = store.reading.mode === 'ebook' ? '电子书 📱' : '纸质书 📚';
+  document.getElementById('readingModeLabel').textContent = '模式：' + label;
+  document.getElementById('readingModeBtn').textContent = store.reading.mode === 'ebook' ? '📚 切换纸质' : '📱 切换电子';
+
+  // Research note
+  document.getElementById('researchNote').value = store.academic.notes || '';
+}
+
+// ===== Keyboard Shortcuts =====
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const chat = document.getElementById('chatPanel');
+    if (chat.classList.contains('open')) chat.classList.remove('open');
+    if (window.innerWidth <= 768) {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('mobileOverlay').classList.remove('show');
+    }
+  }
+});
+
+// ===== Init on load =====
+window.addEventListener('DOMContentLoaded', init);
+
+// Responsive sidebar
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('mobileOverlay').classList.remove('show');
+  }
+});
+
+// Daily reset check every minute
+setInterval(() => {
+  checkDailyReset();
+  checkWeekReset();
+}, 60000);
+
+// ===== Data Export / Import =====
+function exportData() {
+  const data = {
+    ...store,
+    _exportDate: new Date().toISOString(),
+    _version: '1.0'
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'claire-workbench-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 数据已导出备份！');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.accounts || !data.tree) {
+        showToast('⚠️ 文件格式不正确');
+        return;
+      }
+      // Merge with defaults to handle missing fields
+      store = { ...defaultStore(), ...data };
+      delete store._exportDate;
+      delete store._version;
+      saveStore();
+      updateAllUI();
+      init();
+      showToast('✅ 数据恢复成功！');
+      addChatMsgBot('Claire，数据已从备份恢复！所有进度已同步~ 📂');
+    } catch(err) {
+      showToast('⚠️ 文件读取失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+console.log('🕵️ 福尔摩斯 · Claire 个人工作台已就绪！');
+</script>
+
+</body>
+</html>
